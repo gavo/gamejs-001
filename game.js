@@ -6,6 +6,8 @@ const btnLeft = document.querySelector("#left");
 const btnRight = document.querySelector("#right");
 const txtLives = document.querySelector("#lives");
 const txtTime = document.querySelector("#time");
+const txtLevel = document.querySelector("#level");
+const txtRecord = document.querySelector("#record");
 
 let elementSize;
 let canvasSize;
@@ -40,21 +42,20 @@ function checkCollision() {
   drawMap();
   const pos = map[player.y][player.x];
   if (pos === "I") {
-    if (level < maps.length - 1) {
-      level++;
-      player.x = undefined;
-      player.y = undefined;
-      drawMessage("Pasaste al Nivel " + (level + 1), 1000, startGame);
+    if (setRecord()) {
+      drawMessage("Nuevo Record", 500, () => {
+        drawMap();
+        levelUp();
+      });
     } else {
-      level = 0;
-      player.x = undefined;
-      player.y = undefined;
-      drawMessage("Ganaste 🏆", 3000, startGame);
+      levelUp();
     }
   } else if (pos === "X") {
     player.x = undefined;
     player.y = undefined;
+    timeStart = undefined;
     lives--;
+    clearInterval(timer);
     if (lives > 0) {
       setTimeout(() => {
         drawMessage("Explotaste 👎", 2000, startGame);
@@ -62,14 +63,25 @@ function checkCollision() {
     } else {
       lives = 3;
       level = 0;
-      clearInterval(timer);
       setTimeout(() => {
         drawMessage("👎 Perdiste 👎", 2500, function () {
-          timeStart = undefined;
           startGame();
         });
       }, 1000);
     }
+  }
+}
+
+function levelUp() {
+  player.x = undefined;
+  player.y = undefined;
+  timeStart = undefined;
+  if (level < maps.length - 1) {
+    level++;
+    drawMessage("Pasaste al Nivel " + (level + 1), 1000, startGame);
+  } else {
+    level = 0;
+    drawMessage("Ganaste 🏆", 3000, startGame);
   }
 }
 
@@ -82,6 +94,8 @@ function startGame() {
   drawMap();
   drawPlayer();
   drawMessage("Nivel " + (level + 1), 1000, drawMap);
+  checkLevel();
+  checkRecord();
   if (!timeStart) {
     timeStart = new Date().getTime();
     updateTime();
@@ -187,9 +201,15 @@ function showLives() {
 function updateTime() {
   timer = setInterval(() => {
     let now = new Date().getTime();
-    let date = getTimeString(Math.round((now - timeStart) / 1000, 0));
-    txtTime.innerHTML = date;
+    if (timeStart) {
+      let date = getTimeString(Math.round((now - timeStart) / 1000, 0));
+      txtTime.innerHTML = date;
+    }
   }, 1000);
+}
+
+function checkLevel() {
+  txtLevel.innerHTML = level + 1;
 }
 
 function getTimeString(time) {
@@ -212,4 +232,32 @@ function getTimeString(time) {
       seconds.padStart(2, "0")
     );
   }
+}
+
+function checkRecord() {
+  let dataStorage = localStorage.getItem("bomb");
+  if (dataStorage !== null) {
+    dataStorage = JSON.parse(dataStorage);
+  } else {
+    dataStorage = {};
+    localStorage.setItem("bomb", JSON.stringify(dataStorage));
+  }
+  const levelValue = dataStorage[level];
+  if (levelValue) {
+    txtRecord.innerHTML = getTimeString(levelValue);
+  } else {
+    txtRecord.innerHTML = "Ninguno";
+  }
+}
+
+function setRecord() {
+  let time = Math.round((new Date().getTime() - timeStart) / 1000, 0);
+  const dataStorage = JSON.parse(localStorage.getItem("bomb"));
+  let record = dataStorage[level];
+  if (!record || record > time) {
+    dataStorage[level] = time;
+    localStorage.setItem("bomb", JSON.stringify(dataStorage));
+    return true;
+  }
+  return false;
 }
