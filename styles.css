@@ -46,19 +46,20 @@ button:not(:last-child) {
   display: flex;
   flex-wrap: wrap;
   margin: 0 auto;
-  width: 80%;
-  max-width: 460px;
+  /* width: 80%; */
+  /* max-width: 460px; */
 }
 
 p {
   display: block;
   margin: 0;
   width: 100%;
+  text-align: c;
 }
 
-@media (max-width: 440px) {
+@media (max-width: 560px) {
   button {
-    margin-top: 25px;
+    margin-top: 5px;
   }
   #up,
   #down {
