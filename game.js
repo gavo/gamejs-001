@@ -4,7 +4,14 @@ const btnUp = document.querySelector("#up");
 const btnDown = document.querySelector("#down");
 const btnLeft = document.querySelector("#left");
 const btnRight = document.querySelector("#right");
+
 let elementSize;
+let canvasSize;
+
+const player = {
+  x: undefined,
+  y: undefined,
+};
 
 window.addEventListener("load", resizeCanvas);
 window.addEventListener("resize", resizeCanvas);
@@ -19,46 +26,67 @@ function moveByKeys(event) {
   else if (event.code === "ArrowDown") moveDown();
   else if (event.code === "ArrowLeft") moveLeft();
   else if (event.code === "ArrowRight") moveRight();
-}
-
-function getMap(level) {
-  return maps[level].match(/[\-IXO]+/g).map((a) => a.split(""));
+  drawMap();
 }
 
 function startGame() {
   game.font = elementSize + "px Verdana";
   game.textAlign = "start";
   game.textBaseline = "top";
+  drawMap();
+  drawPlayer();
+}
 
-  const map = getMap(0);
+function getMap(level) {
+  return maps[level].match(/[\-IXO]+/g).map((a) => a.split(""));
+}
+
+function drawMap() {
+  game.clearRect(0, 0, canvas.width, canvas.height);
+  const map = getMap(2);
 
   map.forEach((rows, row) => {
     rows.forEach((key, col) => {
       const emoji = emojis[key];
-      const posX = col * elementSize - elementSize * 0.2;
-      const posY = row * elementSize + elementSize * 0.05;
+      const posX = col * elementSize;
+      const posY = row * elementSize;
       game.fillText(emoji, posX, posY);
+      if ((player.x === undefined || player.y === undefined) && key === "O") {
+        player.x = col;
+        player.y = row;
+      }
     });
   });
+  drawPlayer();
+}
+
+function drawPlayer() {
+  const emoji = emojis["PLAYER"];
+  const posX = player.x * elementSize;
+  const posY = player.y * elementSize;
+  game.fillText(emoji, posX, posY);
 }
 
 function resizeCanvas() {
-  let canvasSize = Math.min(window.innerHeight, window.innerWidth) * 0.8;
+  canvasSize = Math.min(window.innerHeight, window.innerWidth) * 0.85;
   canvas.setAttribute("width", canvasSize);
   canvas.setAttribute("height", canvasSize);
-  elementSize = canvasSize / 10;
+  elementSize = (canvasSize / 10) * 0.98;
   startGame();
 }
 
 function moveUp() {
-  console.log("Me muevo hacia arriba");
+  if (player.y > 0) player.y -= 1;
 }
+
 function moveDown() {
-  console.log("Me muevo hacia abajo");
+  if (player.y < 9) player.y += 1;
 }
+
 function moveLeft() {
-  console.log("Me muevo a la izquierda");
+  if (player.x > 0) player.x -= 1;
 }
+
 function moveRight() {
-  console.log("Me muevo a la derecha");
+  if (player.x < 9) player.x += 1;
 }
